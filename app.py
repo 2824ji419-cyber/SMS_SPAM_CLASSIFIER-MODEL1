@@ -1,3 +1,12 @@
+import nltk
+
+# NLTK resources download (Streamlit Cloud ke liye)
+for r in ['punkt', 'punkt_tab']:
+    try:
+        nltk.data.find(f'tokenizers/{r}')
+    except LookupError:
+        nltk.download(r)
+
 import streamlit as st
 import pickle
 import string
