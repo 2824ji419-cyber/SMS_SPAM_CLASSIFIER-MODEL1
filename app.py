@@ -1,21 +1,21 @@
-import nltk
-
-# NLTK resources download (Streamlit Cloud ke liye)
-for r in ['punkt', 'punkt_tab', 'stopwords']:
-    try:
-        nltk.data.find(f'tokenizers/{r}')
-    except LookupError:
-        nltk.download(r)
-
 import streamlit as st
 import pickle
 import string
 from nltk.corpus import stopwords
-
+import nltk
 from nltk.stem.porter import PorterStemmer
 
 ps = PorterStemmer()
 
+# Ensure NLTK data is downloaded
+try:
+    nltk.data.find('tokenizers/punkt')
+except LookupError:
+    nltk.download('punkt')
+try:
+    nltk.data.find('corpora/stopwords')
+except LookupError:
+    nltk.download('stopwords')
 
 def transform_text(text):
     text = text.lower()
@@ -41,15 +41,20 @@ def transform_text(text):
 
     return " ".join(y)
 
-tfidf = pickle.load(open('vectorizer.pkl','rb'))
-model = pickle.load(open('model.pkl','rb'))
+# Load the saved vectorizer and model
+# Note: Ensure vectorizer.pkl and model.pkl are in the same directory as this script
+try:
+    tfidf = pickle.load(open('vectorizer.pkl', 'rb'))
+    model = pickle.load(open('model.pkl', 'rb'))
+except FileNotFoundError:
+    st.error("Error: vectorizer.pkl or model.pkl not found. Please run train_model.py first.")
+    st.stop()
 
 st.title("Email/SMS Spam Classifier")
 
 input_sms = st.text_area("Enter the message")
 
 if st.button('Predict'):
-
     # 1. preprocess
     transformed_sms = transform_text(input_sms)
     # 2. vectorize
@@ -57,7 +62,7 @@ if st.button('Predict'):
     # 3. predict
     result = model.predict(vector_input)[0]
     # 4. Display
-    if result == 1:
+    if result == 'spam':
         st.header("Spam")
     else:
         st.header("Not Spam")
